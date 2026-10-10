@@ -988,14 +988,14 @@ requestAnimationFrame(frame);
 
 
 /* ================= photos woven through the story + film + zoom viewer ================= */
-const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["8165",2560,1920,"Exterior"],["8174",2560,1920,"Exterior"],["8100",2560,1920,"Exterior"],["8209",2560,1920,"Exterior"],["8210",2560,1920,"Exterior"],["8164",2560,1920,"Exterior"],["8101",2560,1920,"Exterior"],["8103",2560,1920,"Exterior"],["8114",1920,2560,"Exterior"]]},"prop":{"label":"Nose & prop","p":[["8112",1920,2560,"Nose & prop"],["8110",1920,2560,"Nose & prop"],["8121",1920,2560,"Nose & prop"],["8123",1920,2560,"New nose gear"]]},"refresh":{"label":"Paint & cabin","p":[["8118",2560,1920,"2026 paint"],["8131",2560,1920,"2026 paint"],["8116",1920,2560,"2026 paint"],["8163",2560,1920,"Black Italian leather"],["8136",2560,1920,"Black Italian leather"],["8137",2560,1920,"Black Italian leather"],["8180",2560,1920,"Black Italian leather"],["8076",1920,2560,"Black Italian leather"],["8157",2560,1920,"Baggage"]]},"cockpit":{"label":"Cockpit & panel","p":[["8158",2560,1920,"Cockpit & panel"],["8139",2560,1920,"Cockpit & panel"],["8132",2560,1920,"Cockpit & panel"],["8177",2560,1920,"Cockpit & panel"],["8181",1920,2560,"Cockpit & panel"],["8148",2560,1920,"Hobbs & flight meter"]]}};
+const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["8223",2560,1920,"Exterior"],["8221",2560,1920,"Exterior"],["8220",2560,1920,"Exterior"],["8209",2560,1920,"Exterior"],["8210",2560,1920,"Exterior"],["8222",2560,1920,"Exterior"]]},"prop":{"label":"Nose & prop","p":[["8229",1920,2560,"Nose & prop"],["8121",1920,2560,"Nose & prop"],["8123",1920,2560,"New nose gear"]]},"refresh":{"label":"Paint & cabin","p":[["8118",2560,1920,"2026 paint"],["8116",1920,2560,"2026 paint"],["8242",1920,2560,"Black Italian leather"],["8236",2560,1920,"Black Italian leather"],["8136",2560,1920,"Black Italian leather"],["8137",2560,1920,"Black Italian leather"],["8180",2560,1920,"Black Italian leather"],["8157",2560,1920,"Baggage"]]},"cockpit":{"label":"Cockpit & panel","p":[["8232",2560,1920,"Cockpit & panel"],["8241",2560,1920,"Cockpit & panel"],["8239",1920,2560,"Cockpit & panel"],["8238",1920,2560,"Cockpit & panel"],["8231",1920,2560,"Cockpit & panel"],["8148",2560,1920,"Hobbs & flight meter"]]}};
 (()=>{
   const thumb=(id,i,cls='',extra='')=>{ const [n,w,h]=SETS[id].p[i]; return `<button class="ph ${cls}" type="button" data-set="${id}" data-i="${i}" aria-label="${SETS[id].p[i][3]}, photo ${i+1} of ${SETS[id].p.length}"${extra}><img loading="lazy" decoding="async" src="photos/${n}${cls.includes('m0')?'':'-t'}.webp" alt="" width="${w}" height="${h}">`; };
-  const loop=(name,label,t)=>`<div class="ph vid ${name==='walk'?'mv':''}" role="button" tabindex="0" data-film="${t}" aria-label="${label}"><video muted loop playsinline preload="none" poster="loop-${name}.webp" data-src="loop-${name}.mp4"></video><span class="tag"><svg viewBox=\"0 0 12 12\" fill=\"currentColor\"><path d=\"M3 1.5v9l7.5-4.5z\"/></svg>${label}</span></div>`;
+  const loop=(name,label,t,vid)=>`<div class="ph vid ${name==='walk'?'mv':''}" role="button" tabindex="0" data-film="${t}"${vid?` data-video="${vid}"`:''} aria-label="${label}"><video muted loop playsinline preload="none" poster="loop-${name}.webp" data-src="loop-${name}.mp4"></video><span class="tag"><svg viewBox=\"0 0 12 12\" fill=\"currentColor\"><path d=\"M3 1.5v9l7.5-4.5z\"/></svg>${label}</span></div>`;
   const ext=SETS.exterior.p.length;
   $('#mosaic').innerHTML = thumb('exterior',0,'m0')+'</button>' + loop('walk','Watch the walk-around film',16.6) + thumb('exterior',1,'m1')+'</button>' + thumb('exterior',2,'m2')+`<span class="more">+${ext-3} more<small>Exterior photos</small></span></button>`;
   document.querySelectorAll('.rail').forEach(r=>{ const id=r.dataset.set, set=SETS[id];
-    r.innerHTML=`<div class="rail-h">${r.dataset.title}<small>${set.p.length} photos · tap to zoom</small></div><div class="rail-s">${set.p.map((_,i)=>thumb(id,i)+'</button>').join('')}${r.dataset.loop?loop(r.dataset.loop,'Cabin tour',48.6):''}</div>`;
+    r.innerHTML=`<div class="rail-h">${r.dataset.title}<small>${set.p.length} photos · tap to zoom</small></div><div class="rail-s">${set.p.map((_,i)=>thumb(id,i)+'</button>').join('')}${r.dataset.loop?loop(r.dataset.loop,'Cabin tour · 0:35',0,'cabin-tour.mp4'):''}</div>`;
     r.querySelectorAll('.rail-s .ph[data-set]').forEach((b,i)=>{ const [,w,h]=set.p[i]; b.style.aspectRatio=`${w}/${h}`; });
     r.querySelectorAll('.rail-s .vid').forEach(v=>v.style.aspectRatio='16/9'); });
   // ambient loops: load and play only while on screen (and never for reduced motion)
@@ -1003,16 +1003,16 @@ const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["
   if(MOTION) document.querySelectorAll('.ph.vid video').forEach(v=>vio.observe(v));
   // the film
   const film=$('#film'), fv=$('#filmV');
-  function openFilm(t){ const tall=matchMedia('(max-aspect-ratio: 3/4)').matches, src=tall?'film-vertical.mp4':'film-1080.mp4';
-    if(!fv.src.endsWith(src)){ fv.src=src; fv.poster=tall?'hero-sunset-tall.webp':'hero-sunset-1600.webp'; }
+  function openFilm(t,vid){ const tall=matchMedia('(max-aspect-ratio: 3/4)').matches, src=vid||(tall?'film-vertical.mp4':'film-1080.mp4');
+    if(!fv.src.endsWith(src)){ fv.src=src; fv.poster=vid?'loop-cabin.webp':(tall?'hero-sunset-tall.webp':'hero-sunset-1600.webp'); }
     film.hidden=false; document.documentElement.style.overflow='hidden';
     const seek=()=>{ try{ fv.currentTime=t||0; }catch(_){} };
     if(fv.readyState>=1) seek(); else fv.addEventListener('loadedmetadata',seek,{once:true});
     fv.play().catch(()=>{});   // play() is what starts loading a preload=none video
     $('#filmX').focus(); }
   function closeFilm(){ fv.pause(); film.hidden=true; document.documentElement.style.overflow=''; }
-  document.addEventListener('click',e=>{ const b=e.target.closest('[data-film]'); if(b){ e.preventDefault(); openFilm(+b.dataset.film); } });
-  document.addEventListener('keydown',e=>{ const b=e.target.closest&&e.target.closest('.ph.vid'); if(b&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); openFilm(+b.dataset.film); } if(e.key==='Escape'&&!film.hidden) closeFilm(); });
+  document.addEventListener('click',e=>{ const b=e.target.closest('[data-film]'); if(b){ e.preventDefault(); openFilm(+b.dataset.film,b.dataset.video); } });
+  document.addEventListener('keydown',e=>{ const b=e.target.closest&&e.target.closest('.ph.vid'); if(b&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); openFilm(+b.dataset.film,b.dataset.video); } if(e.key==='Escape'&&!film.hidden) closeFilm(); });
   $('#filmX').addEventListener('click',closeFilm);
 
   /* ---- viewer ---- */
@@ -1180,7 +1180,7 @@ const rio=new IntersectionObserver(es=>{ if(es[0].isIntersecting){ bootRange(); 
 
 /* ================= N325CL assistant (runs in the page; no external service) ================= */
 const KB = [
- {id:'film', go:'#reveal', k:['video','videos','film','movie','walkaround video','watch'], a:()=>`There is an 81-second walk-around film: press <b>Watch the film</b> at the top of the page. Short clips also play in the walk-around and Specs sections.`},
+ {id:'film', go:'#reveal', k:['video','videos','film','movie','walkaround video','watch'], a:()=>`There is an 81-second walk-around film: press <b>Watch the film</b> at the top of the page. Short clips play in the walk-around, and the Specs section has a 35-second cabin tour.`},
  {id:'photos', go:'#walk', k:['photo','photos','pictures','picture','pics','pic','images','gallery','more photos','more pictures','walkaround','walk around','interior photos','panel photo'], a:()=>`Unretouched photos run right through the page: the <b>walk-around</b> just below the top, prop close-ups in <b>Propeller</b>, paint and the new leather in <b>Refresh</b>, and the panel in <b>Specs</b>. Tap any photo to open it full screen and zoom. There is also an 81-second film: the <b>Watch the film</b> button at the top.`, f:['Interior?','Avionics?']},
  {id:'price', go:'#reveal', k:['price','cost','asking','how much','sell','selling','value','worth','$'], a:()=>`N325CL is offered at <b>$469,900</b>. Serious offers are welcome. Robin can walk you through the 2026 refresh and the records behind the price.`, f:['What was replaced in 2026?','Can I make an offer?']},
  {id:'offer', k:['offer','negotiable','negotiate','best price','lowest','discount','deal'], a:()=>`Robin welcomes serious offers. Send one through the inquiry form with your timeline and purchase method.`, act:'Make an offer'},
