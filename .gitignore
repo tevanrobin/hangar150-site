@@ -2,3 +2,9 @@ hangar150-site deploy: keep the photo shoot out of the public site
 N325CL Pics - Paint refresh/
 _build/
 .DS_Store
+# never publish keys or certificates
+*.pem
+*.key
+*.crt
+*.zip
+*ssl-bundle*/
