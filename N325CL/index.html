@@ -10,7 +10,7 @@
   if (!/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname)) {
     var g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA_ID; document.head.appendChild(g);
     gtag('js', new Date());
-    gtag('config', window.GA_ID, { anonymize_ip: true });
+    gtag('config', window.GA_ID, { anonymize_ip: true, send_page_view: false });
   }
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -879,8 +879,52 @@ const WEB3FORMS_KEY = "0e8bb267-ba2d-4462-b6a1-dc230094b45f";
 /* Google Analytics 4: loaded in <head> (window.GA_ID); events below go through track(). */
 const GA_ID = window.GA_ID || "";
 const _sent = new Set();
+/* ---- retention analytics: each chapter is a virtual page (time-in-section, landing, path, exit) ---- */
+const PAGE_BASE = location.origin + location.pathname;
+const S_ = { start: Date.now(), cur: -1, curSince: 0, visibleSince: Date.now(), engaged: 0, perCh: {}, deepest: 0, viewed: new Set(), pvTimer: 0,
+             lastPv: -1, landed: false, video: false, form: false, lead: false, bot: false, photos: 0 };
+function chName(i){ return (typeof CH !== 'undefined' && CH[i]) ? CH[i].dataset.name : 'Aircraft'; }
+function chId(i){ return (typeof CH !== 'undefined' && CH[i]) ? CH[i].id : 'reveal'; }
+function engagedNow(){ return S_.engaged + (document.visibilityState === 'visible' ? (Date.now() - S_.visibleSince) : 0); }
+function sendPageView(i, landing){
+  if (!GA_ID || S_.lastPv === i) return; S_.lastPv = i;
+  const name = chName(i);
+  try { gtag('event', 'page_view', { page_title: 'N325CL – ' + name, page_location: PAGE_BASE + '#' + chId(i), page_path: location.pathname + '#' + chId(i),
+        chapter: name, chapter_number: i + 1, landing_section: landing ? name : undefined }); } catch (_) {}
+}
+function closeSection(){
+  if (S_.cur < 0) return;
+  const secs = Math.round((Date.now() - S_.curSince) / 1000);
+  if (secs >= 2 && document.visibilityState === 'visible') {
+    S_.perCh[chName(S_.cur)] = (S_.perCh[chName(S_.cur)] || 0) + secs;
+    track('section_time', { chapter: chName(S_.cur), chapter_number: S_.cur + 1, seconds: secs, value: secs });
+  }
+}
+function sectionEnter(i){
+  if (i === S_.cur) return;
+  closeSection(); S_.cur = i; S_.curSince = Date.now(); S_.viewed.add(i); S_.deepest = Math.max(S_.deepest, i);
+  clearTimeout(S_.pvTimer);
+  if (!S_.landed) { S_.landed = true; sendPageView(i, true); track('landing', { landing_section: chName(i), referrer_host: (document.referrer ? new URL(document.referrer).hostname : 'direct') }); return; }
+  S_.pvTimer = setTimeout(() => { if (S_.cur === i) sendPageView(i, false); }, 1000);      // ignore chapters merely scrolled past
+}
+function sendSummary(){
+  if (_sent.has('summary')) return; _sent.add('summary'); closeSection();
+  const top = Object.entries(S_.perCh).sort((a, b) => b[1] - a[1])[0];
+  track('session_summary', { deepest_chapter: chName(S_.deepest), deepest_number: S_.deepest + 1, exit_chapter: chName(S_.cur),
+        chapters_viewed: S_.viewed.size, engaged_seconds: Math.round(engagedNow() / 1000), top_chapter: top ? top[0] : chName(S_.cur),
+        watched_video: S_.video, opened_photos: S_.photos, used_chatbot: S_.bot, started_form: S_.form, sent_inquiry: S_.lead, transport_type: 'beacon' });
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { S_.engaged += Date.now() - S_.visibleSince; sendSummary(); }
+  else { S_.visibleSince = Date.now(); S_.curSince = Date.now(); _sent.delete('summary'); }        // a returning tab gets a fresh summary later
+});
+addEventListener('pagehide', sendSummary);
+// engagement milestones: 30s, 1, 2, 5 minutes of visible time
+[30, 60, 120, 300].forEach(sec => { const tick = () => { if (engagedNow() >= sec * 1000) track('engaged_time', { seconds: sec, chapter: chName(S_.cur) }, 'eng' + sec); else setTimeout(tick, 2000); }; setTimeout(tick, sec * 1000); });
 function track(name, params = {}, onceKey) {          // no personal details are ever sent, only what was viewed or clicked
   if (onceKey) { if (_sent.has(onceKey)) return; _sent.add(onceKey); }
+  if (name === 'video_start') S_.video = true; if (name === 'photo_open') S_.photos++; if (name === 'chatbot_open') S_.bot = true;
+  if (name === 'form_start') S_.form = true; if (name === 'generate_lead') S_.lead = true;
   try { if (GA_ID) gtag('event', name, params); } catch (_) {}
 }
 
@@ -917,6 +961,7 @@ let current = -1;
 function setChapter(i){
   if(i===current) return; current=i;
   if(opened || i>0) track('chapter_view', { chapter: CH[i].dataset.name, chapter_number: i + 1 }, 'ch' + i);
+  sectionEnter(i);
   const n=CH.length, pad=v=>String(v).padStart(2,'0');
   wfItems.forEach((li,k)=>{ li.classList.toggle('on',k===i); li.classList.toggle('done',k<i); });
   const li=wfItems[i]; const y=li.offsetTop + li.offsetHeight/2 - 8.5;
