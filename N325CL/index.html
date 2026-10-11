@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- Google tag (gtag.js), GA4 G-PN4RCVHG33; skipped on the local preview so testing never pollutes the numbers -->
+<script>
+  window.GA_ID = 'G-PN4RCVHG33';
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  if (!/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname)) {
+    var g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA_ID; document.head.appendChild(g);
+    gtag('js', new Date());
+    gtag('config', window.GA_ID, { anonymize_ip: true });
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>2008 Cirrus SR22 GTS Turbo for Sale – N325CL | $469,900</title>
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/N325CL/favicon-32.png"><link rel="apple-touch-icon" href="/N325CL/apple-touch-icon.png"><meta name="theme-color" content="#2060c4">
@@ -865,14 +876,8 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
 <script>
 /* Form backend: paste the Web3Forms access key here (free: web3forms.com → enter your email → key arrives by email). */
 const WEB3FORMS_KEY = "0e8bb267-ba2d-4462-b6a1-dc230094b45f";
-/* Google Analytics 4: paste the Measurement ID (G-XXXXXXXXXX). Empty = no tracking at all. */
-const GA_ID = "";
-window.dataLayer = window.dataLayer || [];
-function gtag(){ dataLayer.push(arguments); }
-if (GA_ID && !/^(localhost|127\.)/.test(location.hostname)) {
-  const g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(g);
-  gtag('js', new Date()); gtag('config', GA_ID, { anonymize_ip: true });
-}
+/* Google Analytics 4: loaded in <head> (window.GA_ID); events below go through track(). */
+const GA_ID = window.GA_ID || "";
 const _sent = new Set();
 function track(name, params = {}, onceKey) {          // no personal details are ever sent, only what was viewed or clicked
   if (onceKey) { if (_sent.has(onceKey)) return; _sent.add(onceKey); }
