@@ -849,7 +849,7 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
       </div>
       <div class="status" id="status" role="status" aria-live="polite"></div>
     </form>
-    <p class="disc"><b>Disclosure.</b> All details are to the best of the seller’s knowledge and subject to buyer verification; a pre-purchase inspection is welcomed. Performance figures are manufacturer / published estimates. Offered subject to prior sale or price change — complete records available for review.</p>
+    <p class="disc"><b>Disclosure.</b> All details are to the best of the seller’s knowledge and subject to buyer verification; a pre-purchase inspection is welcomed. Performance figures are manufacturer / published estimates. Offered subject to prior sale or price change — complete records available for review. This site uses Google Analytics to count visits and see which sections are viewed; nothing you type into the form is shared with it.</p>
   </div>
 </section>
 </main>
@@ -865,6 +865,19 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
 <script>
 /* Form backend: paste the Web3Forms access key here (free: web3forms.com → enter your email → key arrives by email). */
 const WEB3FORMS_KEY = "0e8bb267-ba2d-4462-b6a1-dc230094b45f";
+/* Google Analytics 4: paste the Measurement ID (G-XXXXXXXXXX). Empty = no tracking at all. */
+const GA_ID = "";
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+if (GA_ID && !/^(localhost|127\.)/.test(location.hostname)) {
+  const g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(g);
+  gtag('js', new Date()); gtag('config', GA_ID, { anonymize_ip: true });
+}
+const _sent = new Set();
+function track(name, params = {}, onceKey) {          // no personal details are ever sent, only what was viewed or clicked
+  if (onceKey) { if (_sent.has(onceKey)) return; _sent.add(onceKey); }
+  try { if (GA_ID) gtag('event', name, params); } catch (_) {}
+}
 
 const $ = s => document.querySelector(s);
 const clamp = (v,a=0,b=1) => Math.min(b,Math.max(a,v));
@@ -898,6 +911,7 @@ const wfItems = [...document.querySelectorAll('#wfList li')];
 let current = -1;
 function setChapter(i){
   if(i===current) return; current=i;
+  if(opened || i>0) track('chapter_view', { chapter: CH[i].dataset.name, chapter_number: i + 1 }, 'ch' + i);
   const n=CH.length, pad=v=>String(v).padStart(2,'0');
   wfItems.forEach((li,k)=>{ li.classList.toggle('on',k===i); li.classList.toggle('done',k<i); });
   const li=wfItems[i]; const y=li.offsetTop + li.offsetHeight/2 - 8.5;
@@ -972,14 +986,14 @@ function setTod(t){
   document.querySelectorAll('.sc').forEach(p=>{ if(p.dataset.tod===t) wakePic(p); p.classList.toggle('on',p.dataset.tod===t); });
   document.querySelectorAll('.tod button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tod===t)));
 }
-document.querySelectorAll('.tod button').forEach(b=>b.addEventListener('click',()=>setTod(b.dataset.tod)));
+document.querySelectorAll('.tod button').forEach(b=>b.addEventListener('click',()=>{ setTod(b.dataset.tod); track('scene_switch', { scene: b.dataset.tod }); }));
 { const h=new Date().getHours(); setTod(h>=5&&h<10 ? 'sunrise' : (h>=20||h<5) ? 'night' : 'sunset'); }
 addEventListener('load',()=>setTimeout(()=>document.querySelectorAll('.sc').forEach(wakePic),1500));
 
 /* ---------- hangar doors: closed until the first scroll ---------- */
 let opened = !MOTION, gap = MOTION ? 0 : 1, opening=false;
 function openHangar(){
-  if(opened||opening) return; opening=true;
+  if(opened||opening) return; opening=true; track('hangar_open', {}, 'hangar');
   const t0=performance.now(), D=2400;
   const step=t=>{ const k=clamp((t-t0)/D);
     gap=ease(clamp(k/.62));
@@ -1050,7 +1064,11 @@ const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["
   if(MOTION) document.querySelectorAll('.ph.vid video').forEach(v=>vio.observe(v));
   // the film
   const film=$('#film'), fv=$('#filmV');
+  let vName='', vMarks=new Set();
+  fv.addEventListener('timeupdate',()=>{ if(!fv.duration) return; const p=Math.floor(fv.currentTime/fv.duration*4)*25; [25,50,75].forEach(m=>{ if(p>=m && !vMarks.has(m)){ vMarks.add(m); track('video_progress',{ video_title:vName, video_percent:m }); } }); });
+  fv.addEventListener('ended',()=>track('video_complete',{ video_title:vName }));
   function openFilm(t,vid){ const tall=matchMedia('(max-aspect-ratio: 3/4)').matches, src=vid||(tall?'film-vertical.mp4':'film-1080.mp4');
+    vName = vid ? 'Cabin tour' : 'Walk-around film'; vMarks=new Set(); track('video_start', { video_title: vName, start_at: Math.round(t||0) });
     if(!fv.src.endsWith(src)){ fv.src=src; fv.poster=vid?'loop-cabin.webp':(tall?'hero-sunset-tall.webp':'hero-sunset-1600.webp'); }
     film.hidden=false; document.documentElement.style.overflow='hidden';
     const seek=()=>{ try{ fv.currentTime=t||0; }catch(_){} };
@@ -1084,6 +1102,7 @@ const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["
     [1,-1].forEach(d=>{ const p=set.p[(idx+d+set.p.length)%set.p.length]; const im=new Image(); im.src=`photos/${p[0]}.webp`; });
   }
   function openLB(id,i){
+    track('photo_open', { gallery: id, photo: SETS[id].p[i][0] });
     set=SETS[id]; lastFocus=document.activeElement;
     strip.innerHTML=set.p.map(([n],k)=>`<button type="button" data-k="${k}" aria-label="Photo ${k+1}"><img loading="lazy" src="photos/${n}-t.webp" alt="N325CL thumbnail ${k+1}"></button>`).join('');
     lb.hidden=false; document.documentElement.style.overflow='hidden'; show(i); $('#lbX').focus();
@@ -1129,7 +1148,7 @@ const SETS={"exterior":{"label":"Exterior","p":[["8208",2560,1920,"Exterior"],["
 const HOT=[['KASE','Aspen',7820],['KTEX','Telluride',9070],['KLXV','Leadville',9927],['KJAC','Jackson Hole',6451],['KAPA','Denver Centennial',5885]];
 let hotI=0;
 $('#hotChips').innerHTML=HOT.map((h,i)=>`<button type="button" data-i="${i}" class="${i?'':'on'}">${h[1]}<small>${h[0]} · ${h[2].toLocaleString('en-US')} ft</small></button>`).join('');
-$('#hotChips').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; hotI=+b.dataset.i; [...$('#hotChips').children].forEach((c,k)=>c.classList.toggle('on',k===hotI)); hotCalc();});
+$('#hotChips').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; track('hot_high_airport', { airport: HOT[+b.dataset.i][0] }); hotI=+b.dataset.i; [...$('#hotChips').children].forEach((c,k)=>c.classList.toggle('on',k===hotI)); hotCalc();});
 $('#oat').addEventListener('input',hotCalc);
 function hotCalc(){
   const elev=HOT[hotI][2], oat=+$('#oat').value, isa=15-1.98*elev/1000, da=Math.round((elev+118.8*(oat-isa))/10)*10;
@@ -1165,7 +1184,9 @@ function wireAC(inp,box,key){ let hl=-1, list=[];
   function choose(a){ if(!a) return; inp.value=a[0]; list=[]; render(); R[key]=a; plan(true); }
 }
 function fmtT(h){ const m=Math.round(h*60); return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`; }
-function plan(animate){
+let _rLast='KAPA', _rT=0;
+function trackRange(){ clearTimeout(_rT); _rT=setTimeout(()=>{ const k=(($('#from')||{}).value||'').trim().toUpperCase(); if(k && k!==_rLast){ _rLast=k; track('range_plan', { from: k }); } }, 1500); }
+function plan(animate){ trackRange();
   if(!R.from) return;
   const gs=Math.max(60,R.tas+R.wind), resGal=R.burn*R.res/60, FG=fuelGal(), endur=Math.max(0,(FG-TAXI-resGal)/R.burn), maxNm=endur*gs; loadUI();
   if(mapReady){
@@ -1326,9 +1347,9 @@ function answer(raw){
   if(!qt.length && !ranked.length) return [{html:`Could you say a bit more? You can ask about engine time, range, avionics, A/C, price or arranging a viewing.`, f:STARTERS}];
   if(OFFTOPIC.test(q) && (!ranked.length || ranked[0][0]<2)) return [{html:`I'm just the N325CL assistant, so I stick to this airplane. Ask me about its engine, range, avionics, equipment or how to see it.`, f:STARTERS}];
   if(!ranked.length && qt.length && qt.every(t=>!/[aeiouy]/.test(t) || /(.)\1\1/.test(t) || /^(asdf|qwer|zxcv|hjkl)/.test(t))) return [{html:`Sorry, I didn't catch that. Try asking about the engine, range, avionics or price.`, f:STARTERS}];
-  if(!ranked.length || ranked[0][0]<1.2) return [{html:`I don't have that detail on hand. Robin can answer it directly; I'll put your question in the inquiry form for you.`, act:'Send my question to Robin', pre:raw}];
+  if(!ranked.length || ranked[0][0]<1.2){ track('chatbot_question', { topic: 'unanswered' }); } if(!ranked.length || ranked[0][0]<1.2) return [{html:`I don't have that detail on hand. Robin can answer it directly; I'll put your question in the inquiry form for you.`, act:'Send my question to Robin', pre:raw}];
   if(ranked[0][0]<2.2 && ranked[1] && ranked[1][0]>=ranked[0][0]*.8) return [{html:`Did you mean one of these?`, f:ranked.slice(0,3).map(x=>LABEL[x[1].id]||x[1].k[0])}];
-  const out=[ranked[0][1]];
+  const out=[ranked[0][1]]; track('chatbot_question', { topic: ranked[0][1].id });
   if(ranked[1] && ranked[1][0]>=2.4 && ranked[1][0]>=ranked[0][0]*.7 && ranked[1][1].id!==ranked[0][1].id && !(ranked[1][1].g && ranked[1][1].g===ranked[0][1].g)) out.push(ranked[1][1]);
   return out.map(it=>({html:it.a(raw), act:it.act, pre:it.pre, go:it.go, f:it.f}));
 }
@@ -1350,13 +1371,15 @@ function ask(text){
     setSugg(follow); }, 450+Math.min(700,res[0].html.length*2));
 }
 function goSection(sel){ closeBot(); const sec=document.querySelector(sel); if(!sec) return; if(!opened){ if(sel==='#reveal'){ openHangar(); } else { opened=true; $('.doors').style.display='none'; $('#intro').style.display='none'; $('#title').style.opacity=1; $('#deal').style.opacity=1; } } sec.scrollIntoView({behavior:'smooth'}); const h=sec.querySelector('h2,h1'); if(h){ h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); } }
-function openBot(){ $('#mcta').classList.add('hide'); $('#bot').hidden=false; $('#botFab').classList.add('hide'); $('#botFab').setAttribute('aria-expanded','true'); if(!log.children.length){ bubble('it','Hi, I can answer questions about <b>N325CL</b>: engine and prop time, avionics, range with your passengers, A/C, ice protection, warranty and viewings. What would you like to know?'); setSugg(); } setTimeout(()=>$('#botIn').focus(),200); }
+function openBot(){ track('chatbot_open');  $('#mcta').classList.add('hide'); $('#bot').hidden=false; $('#botFab').classList.add('hide'); $('#botFab').setAttribute('aria-expanded','true'); if(!log.children.length){ bubble('it','Hi, I can answer questions about <b>N325CL</b>: engine and prop time, avionics, range with your passengers, A/C, ice protection, warranty and viewings. What would you like to know?'); setSugg(); } setTimeout(()=>$('#botIn').focus(),200); }
 function closeBot(){ $('#bot').hidden=true; if(current>0 && CH[current].id!=='inquire') $('#mcta').classList.remove('hide'); $('#botFab').classList.remove('hide'); $('#botFab').setAttribute('aria-expanded','false'); }
 $('#botFab').addEventListener('click',openBot); $('#mAsk').addEventListener('click',openBot); $('#botClose').addEventListener('click',closeBot);
 addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#bot').hidden) closeBot(); });
 $('#botForm').addEventListener('submit',e=>{ e.preventDefault(); ask($('#botIn').value); });
 $('#botSugg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) ask(b.textContent); });
 
+document.addEventListener('click',e=>{ const a=e.target.closest('a[href="#inquire"], a[href="#specs"], #mAsk, .wf a, [data-film]'); if(!a) return;
+  track('cta_click', { label: (a.textContent||a.getAttribute('aria-label')||'').trim().slice(0,40), target: a.getAttribute('href')||a.id||'film' }); });
 /* ---------- inquiry form: polite checks that keep out garbage, never demand optional details ---------- */
 const FORM_T0 = Date.now();
 const DISPOSABLE = /@(mailinator|guerrillamail|10minutemail|tempmail|temp-mail|yopmail|trashmail|sharklasers|getnada|dispostable|maildrop|throwawaymail|fakeinbox|mintemail|mohmal|emailondeck)\./i;
@@ -1424,12 +1447,13 @@ FIELDS.forEach(id=>{ const el=$('#'+id); el.addEventListener('blur',ev=>{ if(ev.
     if(el.value.trim()) checkField(id); if(id==='phone') checkField('email'); });
   el.addEventListener('input',()=>{ if(el.closest('.f').classList.contains('bad')) checkField(id); if(id==='phone'&&$('#email').closest('.f').classList.contains('bad')) checkField('email'); }); });
 let lastSend=0;
+$('#inq').addEventListener('focusin',()=>track('form_start', {}, 'formstart'));
 $('#inq').addEventListener('submit', async e=>{
   e.preventDefault();
   const f=e.target, st=$('#status'), btn=$('#send'); st.className='status';
   if(f.botcheck.checked) return;                                           // hidden trap field: bots only
   const ok=FIELDS.map(checkField).every(Boolean);
-  if(!ok){ const first=f.querySelector('.f.bad input, .f.bad textarea'); st.textContent='A couple of details need a second look (see the notes above). Thanks for helping Robin reply to a real person.'; st.classList.add('err'); if(first) first.focus({preventScroll:false}); return; }
+  if(!ok){ track('form_needs_fix', { fields: [...f.querySelectorAll('.f.bad input, .f.bad textarea')].map(x=>x.id).join(',') }); const first=f.querySelector('.f.bad input, .f.bad textarea'); st.textContent='A couple of details need a second look (see the notes above). Thanks for helping Robin reply to a real person.'; st.classList.add('err'); if(first) first.focus({preventScroll:false}); return; }
   if(Date.now()-FORM_T0 < 4000){ st.textContent='That was quick! Please take a moment to check your details, then send again.'; st.classList.add('err'); return; }
   if(Date.now()-lastSend < 30000){ st.textContent='Your inquiry was just sent. Please give it a minute before sending another.'; st.classList.add('err'); return; }
   if(!WEB3FORMS_KEY){ st.textContent='The inquiry form is being set up. Please check back shortly.'; st.classList.add('err'); return; }
@@ -1440,7 +1464,7 @@ $('#inq').addEventListener('submit', async e=>{
   if(data.email && data.email!=='(not provided)') data.replyto=data.email;
   btn.disabled=true; btn.textContent='Sending…';
   try{ const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)}); const j=await r.json();
-    if(j.success){ lastSend=Date.now(); f.reset(); FIELDS.forEach(id=>setWhy(id,null)); st.textContent='Thanks! Your inquiry is on its way, and Robin will be in touch soon.'; st.classList.add('ok'); } else throw new Error(j.message||'send failed'); }
+    if(j.success){ track('generate_lead', { form: 'inquiry', timeline: data.timeline, funding: data.funding }); lastSend=Date.now(); f.reset(); FIELDS.forEach(id=>setWhy(id,null)); st.textContent='Thanks! Your inquiry is on its way, and Robin will be in touch soon.'; st.classList.add('ok'); } else throw new Error(j.message||'send failed'); }
   catch(err){ st.textContent='That didn’t go through. Please check your connection and try again in a minute.'; st.classList.add('err'); }
   finally{ btn.disabled=false; btn.textContent='Send inquiry'; }
 });
