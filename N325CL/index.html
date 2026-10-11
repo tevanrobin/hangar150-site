@@ -323,6 +323,21 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
 .checks label{display:flex;gap:9px;align-items:center;color:#e1e8ef}
 .hp{position:absolute;left:-5000px}
 .status{grid-column:1/-1;font-size:15px;min-height:1.4em}
+.f .req{color:var(--gold-hi);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-left:6px}
+.f .opt{color:#7f93a8;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-left:6px}
+.f .hint{font-size:12.5px;line-height:1.35;color:#8fa3b8}
+.f .why{font-size:13px;line-height:1.35;color:#ffcf9e;display:none}
+.f.bad .why{display:block}
+.f.bad input,.f.bad textarea,.f.bad select{border-color:#e8a25a;box-shadow:0 0 0 2px rgba(232,162,90,.25)}
+.formhelp{grid-column:1/-1;border:1px solid rgba(201,167,88,.35);border-radius:3px;background:rgba(255,255,255,.03);margin-bottom:6px}
+.formhelp summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:12px 16px;font:600 13.5px var(--sans);color:var(--gold-hi);letter-spacing:.02em}
+.formhelp summary::-webkit-details-marker{display:none}
+.formhelp summary .q{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);font:700 13px var(--sans)}
+.formhelp summary::after{content:"+";margin-left:auto;font-size:18px;color:var(--gold)}
+.formhelp[open] summary::after{content:"–"}
+.formhelp .body{padding:0 16px 14px;font-size:14px;line-height:1.55;color:#c9d3de}
+.formhelp .body ul{margin:6px 0 8px;padding-left:18px}
+.formhelp .body b{color:#fff;font-weight:600}
 .status.ok{color:#9fe0b8}.status.err{color:#ffb4b4}
 .contact-line{margin-top:20px;color:#c9d3de;font-size:14.5px}
 .contact-line b{color:var(--gold);font-weight:600}
@@ -798,16 +813,28 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
     <p class="lede a" style="--d:1">Spec sheet and logbook summary available on request. Pre-purchase inspection welcomed.</p>
     <form id="inq" class="a" style="--d:2" novalidate>
       <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <div class="f"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"></div>
-      <div class="f"><label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="email"></div>
-      <div class="f"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel"></div>
-      <div class="f"><label for="ratings">Certificates &amp; ratings</label><input id="ratings" name="ratings" placeholder="e.g. Private, IFR"></div>
-      <div class="f"><label for="tt">Total time / Cirrus time</label><input id="tt" name="pilot_time" placeholder="e.g. 850 TT / 300 Cirrus"></div>
-      <div class="f"><label for="timeline">Purchase timeline</label>
+      <details class="formhelp f full" id="formHelp">
+        <summary><span class="q">?</span>What do I need to fill out?</summary>
+        <div class="body">
+          <b>Only two things are required:</b> your name and a way to reply (email or phone). Everything else is optional, so share as much or as little as you like.
+          <ul>
+            <li><b>Ratings and pilot time</b> help Robin talk insurance and transition training with you.</li>
+            <li><b>Timeline and purchase method</b> let Robin prioritize serious buyers. "Just researching" is a perfectly fine answer.</li>
+            <li><b>Message</b>: ask anything (logs, squawks, a viewing, a pre-buy).</li>
+          </ul>
+          Your details go only to the seller. They are never shown on this site or shared. Please use real information; made-up entries can't be answered.
+        </div>
+      </details>
+      <div class="f"><label for="name">Name<span class="req">required</span></label><input id="name" name="name" required autocomplete="name" maxlength="80" aria-describedby="name-why"><span class="hint">First name is fine.</span><span class="why" id="name-why"></span></div>
+      <div class="f"><label for="email">Email<span class="req">email or phone</span></label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" aria-describedby="email-why"><span class="hint">Where Robin will reply.</span><span class="why" id="email-why"></span></div>
+      <div class="f"><label for="phone">Phone<span class="opt">optional</span></label><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="25" aria-describedby="phone-why"><span class="hint">Only if you would like a call.</span><span class="why" id="phone-why"></span></div>
+      <div class="f"><label for="ratings">Certificates &amp; ratings<span class="opt">optional</span></label><input id="ratings" name="ratings" placeholder="e.g. Private, IFR" maxlength="80" aria-describedby="ratings-why"><span class="why" id="ratings-why"></span></div>
+      <div class="f"><label for="tt">Total time / Cirrus time<span class="opt">optional</span></label><input id="tt" name="pilot_time" placeholder="e.g. 850 TT / 300 Cirrus" maxlength="60" aria-describedby="tt-why"><span class="why" id="tt-why"></span></div>
+      <div class="f"><label for="timeline">Purchase timeline<span class="opt">optional</span></label>
         <select id="timeline" name="timeline"><option value="">Select</option><option>Ready now</option><option>Within 3 months</option><option>3–6 months</option><option>Just researching</option></select></div>
-      <div class="f"><label for="funding">Purchase method</label>
+      <div class="f"><label for="funding">Purchase method<span class="opt">optional</span></label>
         <select id="funding" name="funding"><option value="">Select</option><option>Cash</option><option>Financing, pre-approved</option><option>Financing, not yet approved</option></select></div>
-      <div class="f"><label for="loc">Your location</label><input id="loc" name="location" autocomplete="address-level2"></div>
+      <div class="f"><label for="loc">Your location<span class="opt">optional</span></label><input id="loc" name="location" autocomplete="address-level2" placeholder="City, state or home airport" maxlength="80" aria-describedby="loc-why"><span class="why" id="loc-why"></span></div>
       <div class="f full"><span class="lbl">I’d like</span>
         <div class="checks">
           <label><input type="checkbox" name="wants" value="Logbook summary"> Logbook summary</label>
@@ -815,7 +842,7 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
           <label><input type="checkbox" name="wants" value="Schedule viewing"> To schedule a viewing</label>
           <label><input type="checkbox" name="wants" value="Pre-purchase inspection"> To arrange a pre-purchase inspection</label>
         </div></div>
-      <div class="f full"><label for="msg">Message</label><textarea id="msg" name="message"></textarea></div>
+      <div class="f full"><label for="msg">Message<span class="opt">optional</span></label><textarea id="msg" name="message" maxlength="3000" placeholder="Questions, a good time to talk, or what you would like to see." aria-describedby="msg-why"></textarea><span class="why" id="msg-why"></span></div>
       <div class="f full" style="flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap">
         <button class="btn" type="submit" id="send">Send inquiry</button>
         <span class="small" style="color:#9fb0c2">Your details go only to the seller.</span>
@@ -837,7 +864,7 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
 
 <script>
 /* Form backend: paste the Web3Forms access key here (free: web3forms.com → enter your email → key arrives by email). */
-const WEB3FORMS_KEY = "";
+const WEB3FORMS_KEY = "0e8bb267-ba2d-4462-b6a1-dc230094b45f";
 
 const $ = s => document.querySelector(s);
 const clamp = (v,a=0,b=1) => Math.min(b,Math.max(a,v));
@@ -1330,20 +1357,91 @@ addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#bot').hidden) closeB
 $('#botForm').addEventListener('submit',e=>{ e.preventDefault(); ask($('#botIn').value); });
 $('#botSugg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) ask(b.textContent); });
 
-/* ---------- inquiry form ---------- */
+/* ---------- inquiry form: polite checks that keep out garbage, never demand optional details ---------- */
+const FORM_T0 = Date.now();
+const DISPOSABLE = /@(mailinator|guerrillamail|10minutemail|tempmail|temp-mail|yopmail|trashmail|sharklasers|getnada|dispostable|maildrop|throwawaymail|fakeinbox|mintemail|mohmal|emailondeck)\./i;
+const FAKE_EMAIL = /^(test|asdf|qwer|abc|aaa|xxx|none|no|fake|spam|null|nobody|noreply|example|sample|user|a|x)[0-9]*@|@(test|example|domain|email|none|fake|asdf|abc)\.(com|net|org)$/i;
+const KEYROWS = ['qwertyuiop','asdfghjkl','zxcvbnm','1234567890','qazwsxedc','plmoknijb'];
+function junkWord(w){
+  w=w.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(w.length<4) return false;
+  if(/(.)\1{3,}/.test(w)) return true;                                   // aaaa, 1111
+  if(/^\d+$/.test(w)) return false;                                       // plain numbers are fine
+  if(w.length>=5 && !/[aeiouy]/.test(w) && !/\d/.test(w)) return true;   // no vowels: sdfgh, qwrtp
+  if(/[bcdfghjklmnpqrstvwxz]{6,}/.test(w)) return true;                   // long consonant runs
+  for(const r of KEYROWS){ for(let i=0;i+4<=r.length;i++){ const s4=r.slice(i,i+4); if(w.includes(s4)||w.includes([...s4].reverse().join(''))) return true; } }
+  if(w.length>=8){ const u=new Set(w).size; if(u<=2) return true; }        // ababab
+  return false;
+}
+function looksJunk(text){
+  const t=text.trim(); if(!t) return false;
+  if(/^(.)\1+$/.test(t.replace(/\s/g,''))) return true;
+  if(/^(test|asdf|qwerty|blah|xxx|abc|none|n\/?a|na|lol|hi|hello|ok|\.+|-+)$/i.test(t)) return true;
+  const ws=t.split(/\s+/).filter(Boolean); const bad=ws.filter(junkWord).length;
+  return bad>0 && bad/ws.length>=.5;
+}
+const LINKS = s=>(s.match(/https?:\/\/|www\.|\.(ru|cn|top|xyz|click|loan)\b/gi)||[]).length;
+const MSG = {
+  name_empty:'Please add your name, even just a first name, so Robin knows who to reply to.',
+  name_bad:'That doesn’t look like a name. A real first name is all we need.',
+  contact_empty:'Please leave an email or a phone number so Robin can reply. Either one is fine.',
+  email_bad:'Please double-check that email address. Robin can’t reply to it as written.',
+  email_fake:'That looks like a placeholder or throwaway address. Please use one you check, or leave a phone number instead.',
+  phone_bad:'That phone number doesn’t look complete. Please check it, or leave the field blank.',
+  text_bad:'This looks like it was typed by accident. Please enter real information, or leave this optional field blank.',
+  tt_bad:'Please use numbers here (e.g. 850 TT / 300 Cirrus), or leave it blank.',
+  msg_links:'For everyone’s safety, please leave links out of the message.',
+  msg_bad:'Your message looks garbled. Please write a short note, or leave it blank.'
+};
+function setWhy(id,key){
+  const el=$('#'+id+'-why'), box=el.closest('.f');
+  if(key){ el.textContent=MSG[key]; box.classList.add('bad'); } else { el.textContent=''; box.classList.remove('bad'); }
+  return !key;
+}
+function checkField(id){
+  const f=$('#inq'), v=(x)=>(f[x]?.value||'').trim();
+  switch(id){
+    case 'name': { const n=v('name');
+      return setWhy('name', !n?'name_empty': (n.length<2 || /\d|https?:|@/.test(n) || !/[a-zA-ZÀ-ɏ]/.test(n) || looksJunk(n)) ? 'name_bad' : null); }
+    case 'email': { const e=v('email'), ph=v('phone');
+      if(!e) return setWhy('email', ph? null : 'contact_empty');
+      if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e) || !f.email.checkValidity()) return setWhy('email','email_bad');
+      return setWhy('email', (DISPOSABLE.test(e)||FAKE_EMAIL.test(e)||looksJunk(e.split('@')[0])) ? 'email_fake' : null); }
+    case 'phone': { const p=v('phone'); if(!p) return setWhy('phone',null);
+      const d=p.replace(/\D/g,''); const bad = d.length<10 || d.length>15 || /^(\d)\1+$/.test(d) || '01234567890123456789'.includes(d) || '98765432109876543210'.includes(d) || /[a-z]{2,}/i.test(p);
+      return setWhy('phone', bad?'phone_bad':null); }
+    case 'ratings': return setWhy('ratings', looksJunk(v('ratings'))?'text_bad':null);
+    case 'tt': { const t=v('pilot_time'); return setWhy('tt', t && (!/\d/.test(t) || looksJunk(t.replace(/\d+/g,''))) ? 'tt_bad' : null); }
+    case 'loc': { const l=v('location'); return setWhy('loc', l && (l.length<2 || !/[a-zA-Z]/.test(l) || looksJunk(l)) ? 'text_bad' : null); }
+    case 'msg': { const m=v('message'); if(!m) return setWhy('msg',null);
+      if(LINKS(m)>0) return setWhy('msg','msg_links');
+      return setWhy('msg', looksJunk(m)?'msg_bad':null); }
+  }
+  return true;
+}
+const FIELDS=['name','email','phone','ratings','tt','loc','msg'];
+FIELDS.forEach(id=>{ const el=$('#'+id); el.addEventListener('blur',ev=>{ if(ev.relatedTarget && ev.relatedTarget.id==='send') return;   // the submit check runs instead, so the button doesn't jump
+    if(el.value.trim()) checkField(id); if(id==='phone') checkField('email'); });
+  el.addEventListener('input',()=>{ if(el.closest('.f').classList.contains('bad')) checkField(id); if(id==='phone'&&$('#email').closest('.f').classList.contains('bad')) checkField('email'); }); });
+let lastSend=0;
 $('#inq').addEventListener('submit', async e=>{
   e.preventDefault();
   const f=e.target, st=$('#status'), btn=$('#send'); st.className='status';
-  if(!f.name.value.trim()||!f.email.value.trim()||!f.email.checkValidity()){ st.textContent='Please add your name and a valid email so the seller can reply.'; st.classList.add('err'); return; }
-  if(f.botcheck.checked) return;
-  if(!WEB3FORMS_KEY){ st.innerHTML='The inquiry form is being set up. Please check back shortly.'; st.classList.add('err'); return; }
-  const data=Object.fromEntries(new FormData(f));
+  if(f.botcheck.checked) return;                                           // hidden trap field: bots only
+  const ok=FIELDS.map(checkField).every(Boolean);
+  if(!ok){ const first=f.querySelector('.f.bad input, .f.bad textarea'); st.textContent='A couple of details need a second look (see the notes above). Thanks for helping Robin reply to a real person.'; st.classList.add('err'); if(first) first.focus({preventScroll:false}); return; }
+  if(Date.now()-FORM_T0 < 4000){ st.textContent='That was quick! Please take a moment to check your details, then send again.'; st.classList.add('err'); return; }
+  if(Date.now()-lastSend < 30000){ st.textContent='Your inquiry was just sent. Please give it a minute before sending another.'; st.classList.add('err'); return; }
+  if(!WEB3FORMS_KEY){ st.textContent='The inquiry form is being set up. Please check back shortly.'; st.classList.add('err'); return; }
+  const data=Object.fromEntries(new FormData(f)); delete data.botcheck;
   data.wants=[...f.querySelectorAll('[name=wants]:checked')].map(c=>c.value).join(', ');
-  Object.assign(data,{access_key:WEB3FORMS_KEY,subject:`N325CL inquiry — ${data.name}`,from_name:'hangar150.com/N325CL'});
+  for(const k of Object.keys(data)) if(typeof data[k]==='string' && !data[k].trim()) data[k]='(not provided)';
+  Object.assign(data,{access_key:WEB3FORMS_KEY, subject:`N325CL inquiry from ${data.name}`, from_name:'hangar150.com/N325CL', botcheck:false});
+  if(data.email && data.email!=='(not provided)') data.replyto=data.email;
   btn.disabled=true; btn.textContent='Sending…';
   try{ const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)}); const j=await r.json();
-    if(j.success){ f.reset(); st.textContent='Thanks — your inquiry was sent. Robin will be in touch.'; st.classList.add('ok'); } else throw new Error(j.message||'send failed'); }
-  catch(err){ st.innerHTML='That didn’t go through. Please try again in a minute.'; st.classList.add('err'); }
+    if(j.success){ lastSend=Date.now(); f.reset(); FIELDS.forEach(id=>setWhy(id,null)); st.textContent='Thanks! Your inquiry is on its way, and Robin will be in touch soon.'; st.classList.add('ok'); } else throw new Error(j.message||'send failed'); }
+  catch(err){ st.textContent='That didn’t go through. Please check your connection and try again in a minute.'; st.classList.add('err'); }
   finally{ btn.disabled=false; btn.textContent='Send inquiry'; }
 });
 </script>
