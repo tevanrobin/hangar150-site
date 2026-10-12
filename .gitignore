@@ -8,3 +8,7 @@ _build/
 *.crt
 *.zip
 *ssl-bundle*/
+
+# private, never publish
+Buildsheet*.txt
+*.pkg
