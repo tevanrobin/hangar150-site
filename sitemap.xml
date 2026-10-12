@@ -38,9 +38,9 @@
     <video:video>
       <video:thumbnail_loc>https://hangar150.com/N325CL/n325cl-og.jpg</video:thumbnail_loc>
       <video:title>N325CL walk-around film – 2008 Cirrus SR22 GTS Turbo</video:title>
-      <video:description>88-second film of N325CL, walk-around to takeoff: new MT 4-blade prop, 2026 paint refresh, Tornado Alley turbonormalized engine, new leather interior and Perspective by Garmin panel.</video:description>
+      <video:description>69-second film of N325CL, walk-around to takeoff: new MT 4-blade prop, 2026 paint refresh, Tornado Alley turbonormalized engine, new leather interior and Perspective by Garmin panel.</video:description>
       <video:content_loc>https://hangar150.com/N325CL/film-1080.mp4</video:content_loc>
-      <video:duration>88</video:duration>
+      <video:duration>69</video:duration>
       <video:publication_date>2026-10-11</video:publication_date>
       <video:family_friendly>yes</video:family_friendly>
     </video:video>
@@ -51,6 +51,15 @@
       <video:content_loc>https://hangar150.com/N325CL/cabin-tour.mp4</video:content_loc>
       <video:duration>35</video:duration>
       <video:publication_date>2026-10-10</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+    <video:video>
+      <video:thumbnail_loc>https://hangar150.com/N325CL/loop-flight.webp</video:thumbnail_loc>
+      <video:title>N325CL in flight – San Luis Obispo to Van Nuys</video:title>
+      <video:description>42-second in-flight film of N325CL above the clouds at sunset: Perspective engine page at 75% power, moving map and GFC 700 autopilot.</video:description>
+      <video:content_loc>https://hangar150.com/N325CL/flight-film-1080.mp4</video:content_loc>
+      <video:duration>42</video:duration>
+      <video:publication_date>2026-10-12</video:publication_date>
       <video:family_friendly>yes</video:family_friendly>
     </video:video>
   </url>
