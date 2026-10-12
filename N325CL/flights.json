@@ -1,0 +1,53 @@
+{
+ "since": "2026-10-11",
+ "source": "adsb.lol (ODbL)",
+ "updated": 1791773078,
+ "flights": [
+  {
+   "off": 1791769351,
+   "on": 1791773032,
+   "mins": 61,
+   "from": {
+    "code": "KSBP",
+    "city": "San Luis Obispo",
+    "st": "CA",
+    "ll": [
+     35.2368,
+     -120.642
+    ]
+   },
+   "to": {
+    "code": "KVNY",
+    "city": "Van Nuys",
+    "st": "CA",
+    "ll": [
+     34.2098,
+     -118.49
+    ]
+   }
+  },
+  {
+   "off": 1791762034,
+   "on": 1791766339,
+   "mins": 72,
+   "from": {
+    "code": "KAJO",
+    "city": "Corona",
+    "st": "CA",
+    "ll": [
+     33.8977,
+     -117.602
+    ]
+   },
+   "to": {
+    "code": "KSBP",
+    "city": "San Luis Obispo",
+    "st": "CA",
+    "ll": [
+     35.2368,
+     -120.642
+    ]
+   }
+  }
+ ]
+}

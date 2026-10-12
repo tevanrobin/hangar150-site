@@ -416,6 +416,14 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
 .qd{display:flex;flex-wrap:wrap;gap:6px}
 .qd button{font:600 11.5px var(--sans);letter-spacing:.04em;border:1px solid rgba(201,167,88,.45);background:transparent;color:var(--gold-hi);padding:5px 9px;border-radius:2px;cursor:pointer}
 .qd button:hover{background:rgba(201,167,88,.12)}
+.trips{border-top:1px solid rgba(255,255,255,.12);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.trips .th{font:600 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-hi)}
+.trips .th span{display:block;margin-top:3px;font-weight:400;letter-spacing:.02em;text-transform:none;color:#aab8c6;font-size:12px}
+.trips .tl{display:flex;flex-direction:column;gap:4px}
+.trips .tl button{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:baseline;width:100%;text-align:left;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#e8eef4;padding:7px 10px;border-radius:2px;cursor:pointer;font:13px var(--sans);font-variant-numeric:tabular-nums}
+.trips .tl button:hover,.trips .tl button.on{border-color:rgba(201,167,88,.6);background:rgba(201,167,88,.10)}
+.trips .tl .d{color:#aab8c6;font-size:12px}.trips .tl .r b{color:#fff;font-weight:600}.trips .tl .m{color:var(--gold-hi);font-size:12px}
+.trips .tf{margin:0;font-size:11.5px;line-height:1.45;color:#8fa1b3}.trips .tf a{color:#c9d6e2}
 .prof{display:flex;gap:6px;flex-wrap:wrap}
 .prof button{font:600 12px var(--sans);border:1px solid rgba(255,255,255,.2);background:transparent;color:#d3dde7;padding:7px 10px;border-radius:2px;cursor:pointer}
 .prof button.on{background:var(--gold);color:var(--night);border-color:var(--gold)}
@@ -793,6 +801,11 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:26px}
       </div>
       <div class="verdict" id="verdict">Loading range…</div>
       <div class="qd" id="quick"></div>
+      <div class="trips" id="trips" hidden>
+        <div class="th">Where it has actually flown <span id="tripsSince"></span></div>
+        <div class="tl" id="tripList"></div>
+        <p class="tf"><span id="tripsUpd"></span> · Data: adsb.lol · <a href="https://www.flightaware.com/live/flight/N325CL" target="_blank" rel="noopener" id="faLink">Track on FlightAware&nbsp;↗</a></p>
+      </div>
       <div class="load">
         <div class="lh">Load for N325CL <span>906 lb useful load</span></div>
         <div class="ppl" id="ppl"><span>People</span><button type="button" data-n="1">1</button><button type="button" data-n="2" class="on">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button></div>
@@ -1284,6 +1297,20 @@ function bootRange(){
 }
 wireAC($('#from'),$('#acFrom'),'from'); wireAC($('#to'),$('#acTo'),'to');
 $('#quick').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!AIRPORTS) return; R.to=find(b.dataset.c); $('#to').value=b.dataset.c; plan(true); });
+// its own recent flights, refreshed every 24 hours by a scheduled job (tools/flights.py); completed flights only, never a live position
+(()=>{ const fmtD=ts=>new Date(ts*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'America/Los_Angeles'});
+  const place=a=>a.code?`${a.city} <b>${a.code}</b>`:`near ${a.city}`, hm=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+  fetch('flights.json?'+Math.floor(Date.now()/6e5),{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.flights||!d.flights.length) return; const F=d.flights.slice(0,8);
+    const hrs=d.flights.reduce((t,f)=>t+f.mins,0)/60;
+    $('#tripsSince').textContent=`${d.flights.length} flight${d.flights.length>1?'s':''} · ${hrs.toFixed(1)} hrs since ${fmtD(Date.parse(d.since+'T12:00:00Z')/1000)}`;
+    $('#tripList').innerHTML=F.map((f,i)=>`<button type="button" data-i="${i}"><span class="d">${fmtD(f.off)}</span><span class="r">${place(f.from)} → ${place(f.to)}</span><span class="m">${hm(f.mins)}</span></button>`).join('');
+    if(d.updated) $('#tripsUpd').textContent='Last refreshed '+new Date(d.updated*1000).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles',timeZoneName:'short'});
+    $('#trips').hidden=false;
+    $('#tripList').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!AIRPORTS) return; const f=F[+b.dataset.i], pt=x=>(x.code&&find(x.code))||(x.ll&&[x.code||x.city,'','',x.city,x.city,x.st,x.ll[0],x.ll[1],0,0]), a=pt(f.from), z=pt(f.to); if(!a||!z) return;
+      [...$('#tripList').children].forEach(c=>c.classList.toggle('on',c===b)); R.from=a; R.to=z; $('#from').value=a[0]; $('#to').value=z[0]; plan(true); track('trip_view',{ route:f.from.code+'-'+f.to.code }); });
+  }).catch(()=>{}); })();
+$('#faLink').addEventListener('click',()=>track('cta_click',{ cta:'flightaware' }));
 $('#prof').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; [...$('#prof').children].forEach(c=>c.classList.toggle('on',c===b)); const custom=b.dataset.p==='custom'; $('#customBox').hidden=!custom; if(custom){ R.tas=+$('#tas').value; R.burn=+$('#burn').value; } else { R.tas=218; R.burn=17.5; } plan(true); });
 $('#tas').addEventListener('input',e=>{ R.tas=+e.target.value; $('#tasOut').textContent=R.tas+' kt'; plan(false); });
 $('#burn').addEventListener('input',e=>{ R.burn=+e.target.value; $('#burnOut').textContent=R.burn.toFixed(1)+' gph'; plan(false); });

@@ -1,0 +1,25 @@
+# Once a day: pull N325CL's last day of public ADS-B track from adsb.lol and add any completed flights to the log.
+# Runs on GitHub's free runners (free for public repositories); commits the refreshed log once a day.
+name: Flight log
+on:
+  schedule:
+    - cron: '17 11 * * *'     # 04:17 PDT / 03:17 PST, after the day's flying
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: flight-log
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/flights.py
+      - name: Commit if changed
+        run: |
+          git diff --quiet N325CL/flights.json && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add N325CL/flights.json
+          git commit -m "Flight log: update"
+          git push
