@@ -1,0 +1,23 @@
+# SEO upkeep for hangar150.com/N325CL.
+# On every change to the page: tell IndexNow (Bing and partners) so it is recrawled within hours.
+# Every Monday: check the live page (title, H1, canonical, JSON-LD, offer expiry); a failure emails the repo owner.
+name: SEO
+on:
+  push:
+    branches: [main]
+    paths: ['N325CL/index.html', 'sitemap.xml']
+  schedule:
+    - cron: '23 15 * * 1'     # Mondays 08:23 PDT
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for Pages to publish
+        if: github.event_name == 'push'
+        run: sleep 90
+      - run: python3 tools/seo_check.py --live ${{ github.event_name == 'push' && '--ping' || '' }}
