@@ -43,6 +43,9 @@ def check(html, where):
         until = datetime.date.fromisoformat(offer["priceValidUntil"])
         if until < datetime.date.today() + datetime.timedelta(days=14):
             bad.append(f"offer priceValidUntil {until} is within 2 weeks; move it out")
+        for v in (x for x in ld if x.get("@type") == "VideoObject"):
+            if datetime.datetime.fromisoformat(v["uploadDate"]).tzinfo is None:
+                bad.append(f"VideoObject uploadDate {v['uploadDate']} needs a time and timezone")
     except Exception as e:
         bad.append(f"JSON-LD unreadable or incomplete: {e}")
     return [f"{where}: {b}" for b in bad]
